@@ -27,6 +27,22 @@ public extension Date {
         formatter.dateFormat = "yyyy-MM-dd" // Specify the format
         return formatter.string(from: self)
     }
+    var hasTimePart: Bool {
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.hour, .minute, .second], from: self)
+
+        return (components.hour != 0 || components.minute != 0 || components.second != 0)
+    }
+    var shortDateTime: String {
+        let formatter = DateFormatter()
+        if (hasTimePart) {
+            formatter.dateFormat = "yy-MM-dd HH:mm"
+        } else {
+            formatter.dateFormat = "yy-MM-dd"
+        }
+        
+        return formatter.string(from: self)
+    }
     var shortTime: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm:ss" // Specify the format
