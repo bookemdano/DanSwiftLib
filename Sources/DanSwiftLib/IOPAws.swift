@@ -12,7 +12,17 @@ public struct IOPAws {
     let _bucketName = "df-2021"
     public init(app:String) {
         _app = app
-        let credentialsProvider = AWSStaticCredentialsProvider(accessKey: AwsStash.AccessKey, secretKey: AwsStash.SecretKey)
+        let accessKey = ProcessInfo.processInfo.environment["AWS_ACCESS_KEY"]
+        if (accessKey == nil) {
+            print("Environment variable AWS_ACCESS_KEY not set")
+            return
+        }
+        let secretKey = ProcessInfo.processInfo.environment["AWS_SECRET_KEY"]
+        if (secretKey == nil) {
+            print("Environment variable AWS_SECRET_KEY not set")
+            return
+        }
+        let credentialsProvider = AWSStaticCredentialsProvider(accessKey: accessKey!, secretKey: secretKey!)
         let configuration = AWSServiceConfiguration(region: .USEast1, credentialsProvider: credentialsProvider)
 
         AWSServiceManager.default().defaultServiceConfiguration = configuration
