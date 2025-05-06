@@ -12,17 +12,25 @@ public struct IOPAws {
     let _bucketName = "df-2021"
     public init(app:String) {
         _app = app
-        let accessKey = ProcessInfo.processInfo.environment["AWS_ACCESS_KEY"]
-        if (accessKey == nil) {
-            print("Environment variable AWS_ACCESS_KEY not set")
-            return
-        }
-        let secretKey = ProcessInfo.processInfo.environment["AWS_SECRET_KEY"]
-        if (secretKey == nil) {
-            print("Environment variable AWS_SECRET_KEY not set")
-            return
-        }
-        let credentialsProvider = AWSStaticCredentialsProvider(accessKey: accessKey!, secretKey: secretKey!)
+        
+        let accessKey = AwsStash.AccessKey
+        let secretKey = AwsStash.SecretKey
+       /*
+            let key = Bundle.main.infoDictionary?["AWS_ACCESS_KEY"] as? String
+            print("AWS Secret Key: \(key)")
+            accessKey = ProcessInfo.processInfo.environment["AWS_ACCESS_KEY"]
+            if (accessKey == nil) {
+                print("Environment variable AWS_ACCESS_KEY not set")
+                return
+            }
+            secretKey = ProcessInfo.processInfo.environment["AWS_SECRET_KEY"]
+            if (secretKey == nil) {
+                print("Environment variable AWS_SECRET_KEY not set")
+                return
+            }
+        */
+
+        let credentialsProvider = AWSStaticCredentialsProvider(accessKey: accessKey, secretKey: secretKey)
         let configuration = AWSServiceConfiguration(region: .USEast1, credentialsProvider: credentialsProvider)
 
         AWSServiceManager.default().defaultServiceConfiguration = configuration
@@ -43,7 +51,6 @@ public struct IOPAws {
         return (await setObjectAsync(keyName: keyName, content: content) == nil)
     }
     func setObjectAsync(keyName: String, content: String) async -> String? {
-   
         return await withCheckedContinuation { continuation in
             setText(keyName: keyName, content: content) { result in
                 continuation.resume(returning: result)
@@ -51,7 +58,6 @@ public struct IOPAws {
         }
     }
     func getObjectAsync(keyName: String) async -> String {
-   
         return await withCheckedContinuation { continuation in
             getText(keyName: keyName) { result in
                 continuation.resume(returning: result)
@@ -61,6 +67,10 @@ public struct IOPAws {
     
     func getText(keyName: String, completion: @escaping (String) -> Void)
     {
+        if (AWSServiceManager.default().defaultServiceConfiguration == nil){
+            print("No config")
+            return
+        }
         let s3 = AWSS3.default()
         let request = AWSS3GetObjectRequest()
         request?.bucket = _bucketName
@@ -81,6 +91,10 @@ public struct IOPAws {
         }
     }
     func setText(keyName: String, content: String, completion: @escaping (String?) -> Void) {
+        if (AWSServiceManager.default().defaultServiceConfiguration == nil){
+            print("No config")
+            return
+        }
         //let data = "Hello, AWS S3! hi 1/6".data(using: .utf8)!
         guard let data = content.data(using: .utf8) else {
             completion("Failed to encode content as UTF-8")
@@ -162,6 +176,7 @@ public struct IOPAws {
         if (_userID != nil) {
             return _userID
         }
+        
         let query: [CFString: Any] = [
             kSecClass: kSecClassGenericPassword,
             kSecAttrAccount: "userID",
