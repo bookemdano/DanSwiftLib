@@ -170,9 +170,13 @@ public struct IOPAws {
             print("Error saving user ID: \(status)")
         }
     }
+    static private let test = false
 
     // Function to retrieve the stored user ID
     public static func getUserID() -> String? {
+        if (test) {
+            _userID = "testUser"
+        }
         if (_userID != nil) {
             return _userID
         }
